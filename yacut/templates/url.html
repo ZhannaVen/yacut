@@ -34,6 +34,13 @@
                         <span style="color:red">{{ error }}</span>
                       {% endfor %}
                     {% endif %}
+                    {% with messages = get_flashed_messages() %}
+                      {% if messages %}
+                        {% for message in messages %}
+                          {{ message }}
+                        {% endfor %}
+                      {% endif %}
+                    {% endwith %}
                   </p>
                 </div>
                 {{ form.submit(class="btn btn-primary", value="Создать") }}
@@ -53,8 +60,8 @@
             <p class="text-center">
               {% if url %}  
                 <h5 class="text-center">
-                  Ваша новая ссылка готова
-                  <a href="{{ url_for('redirect_view', short=url.short, _external=True ) }}">{{ url_for('redirect_view', short=url.shot,  _external=True) }}</a>
+                  Ваша новая ссылка готова:
+                  <a href="{{ url_for('redirect_view', short=url,  _external=True) }}">{{ url_for('redirect_view', short=url,  _external=True) }}</a>
                 </h5>
               {% endif %}  
             </p>
