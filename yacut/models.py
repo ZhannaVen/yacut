@@ -13,13 +13,13 @@ class URLMap(db.Model):
     short = db.Column(db.String(16), unique=True)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
 
-    def to_dict(self, data):
+    def from_dict(self, data):
+        for field_db, field_api in OTHER_NAMES.items():
+            if field_api in data:
+                setattr(self, field_db, data[field_api])
+
+    def to_dict(self):
         return dict(
             url=self.original,
             short_link=url_for('index_view', _external=True) + self.short
         )
-
-    def from_dict(self, data):
-        for field_db, field_api in OTHER_NAMES:
-            if field_api in data:
-                setattr(self, field_db, data[field_api])

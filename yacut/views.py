@@ -1,6 +1,4 @@
-from http import HTTPStatus
-
-from flask import abort, flash, redirect, render_template
+from flask import flash, redirect, render_template
 
 from . import app
 from .constants import SHORT_URL_EXISTS
@@ -17,8 +15,7 @@ def index_view():
         short_url = form.custom_id.data
         if short_url:
             if URLMap.query.filter_by(short=short_url).first() is not None:
-                short_url = get_unique_short_id()
-                flash(SHORT_URL_EXISTS)
+                flash(SHORT_URL_EXISTS.format(short_url))
             else:
                 adding_into_db(original_url, short_url)
                 return render_template('url.html', url=short_url, form=form)
@@ -30,7 +27,4 @@ def index_view():
 
 @app.route('/<string:short>')
 def redirect_view(short):
-    url = URLMap.query.filter_by(short=short).first()
-    if url is None:
-        abort(HTTPStatus.NOT_FOUND)
-    return redirect(url.original, 301)
+    return redirect(URLMap.query.filter_by(short=short).first_or_404().original)

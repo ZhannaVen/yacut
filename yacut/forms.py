@@ -2,7 +2,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, URLField
 from wtforms.validators import URL, DataRequired, Length, Optional, Regexp
 
-from .constants import SHORT_REGEX, VALID_SHORT
+from .constants import SHORT_REGEX
 
 
 class URLMapForm(FlaskForm):
@@ -10,7 +10,7 @@ class URLMapForm(FlaskForm):
         'Вставьте ссылку',
         validators=[
             DataRequired(message='Обязательное поле'),
-            Length(1, 128),
+            Length(1, 256),
             URL(require_tld=False, message='Здесь должен быть url-адрес')
         ]
     )

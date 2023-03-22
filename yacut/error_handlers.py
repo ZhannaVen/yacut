@@ -29,4 +29,4 @@ class InvalidAPIUsage(Exception):
 
 @app.errorhandler(InvalidAPIUsage) 
 def invalid_api_usage(error):
-    return jsonify(error.to_dict()), error.status_code    
+    return jsonify(error.to_dict()), error.status_code

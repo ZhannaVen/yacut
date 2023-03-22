@@ -5,7 +5,7 @@ from .models import URLMap
 
 
 def get_unique_short_id():
-    short_url = shortuuid.ShortUUID().random(length=16)
+    short_url = shortuuid.ShortUUID().random(length=6)
     if URLMap.query.filter_by(short=short_url).first() is not None:
         return get_unique_short_id()
     return short_url
