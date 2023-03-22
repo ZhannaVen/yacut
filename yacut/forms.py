@@ -2,8 +2,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, URLField
 from wtforms.validators import URL, DataRequired, Length, Optional, Regexp
 
-
-SHORT_REGEX = r'^[a-zA-Z\d]{1,16}$'
+from .constants import SHORT_REGEX, VALID_SHORT
 
 
 class URLMapForm(FlaskForm):
@@ -22,7 +21,7 @@ class URLMapForm(FlaskForm):
             Optional(),
             Regexp(
                 regex=SHORT_REGEX,
-                message='Допустимы только цифры 0-9 и буквы "a-Z"')
+                message='Для короткой ссылки допустимы только цифры 0-9 и буквы "a-Z"')
         ]
     )
     submit = SubmitField('Добавить')

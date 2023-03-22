@@ -1,6 +1,10 @@
 from datetime import datetime
 
+from flask import url_for
+
 from yacut import db
+
+from .constants import OTHER_NAMES
 
 
 class URLMap(db.Model):
@@ -9,15 +13,13 @@ class URLMap(db.Model):
     short = db.Column(db.String(16), unique=True)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
 
-    def to_dict(self):
+    def to_dict(self, data):
         return dict(
-            id=self.id,
-            original=self.original,
-            short=self.short,
-            timestamp=self.timestamp,
+            url=self.original,
+            short_link=url_for('index_view', _external=True) + self.short
         )
-    
+
     def from_dict(self, data):
-        for field in ['original']:
-            if field in data:
-                setattr(self, field, data[field])
+        for field_db, field_api in OTHER_NAMES:
+            if field_api in data:
+                setattr(self, field_db, data[field_api])
