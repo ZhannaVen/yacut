@@ -1,7 +1,5 @@
 import os
 
-SITE = '127.0.0.1:5000'
-
 
 class Config(object):
     SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URI')

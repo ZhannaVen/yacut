@@ -1,10 +1,13 @@
 from flask_wtf import FlaskForm
-from wtforms import SubmitField, URLField, StringField
-from wtforms.validators import DataRequired, Length, Optional, URL, UUID
+from wtforms import StringField, SubmitField, URLField
+from wtforms.validators import URL, DataRequired, Length, Optional, Regexp
+
+
+SHORT_REGEX = r'^[a-zA-Z\d]{1,16}$'
 
 
 class URLMapForm(FlaskForm):
-    original = URLField(
+    original_link = URLField(
         'Вставьте ссылку',
         validators=[
             DataRequired(message='Обязательное поле'),
@@ -12,12 +15,14 @@ class URLMapForm(FlaskForm):
             URL(require_tld=False, message='Здесь должен быть url-адрес')
         ]
     )
-    short = StringField(
+    custom_id = StringField(
         'Короткая ссылка',
         validators=[
             Length(1, 16, message='Допустимо не более 16 символов'),
             Optional(),
-            UUID(message='Допустимы следующие символы: A_Z, a-z, 0-9')
+            Regexp(
+                regex=SHORT_REGEX,
+                message='Допустимы только цифры 0-9 и буквы "a-Z"')
         ]
     )
     submit = SubmitField('Добавить')
