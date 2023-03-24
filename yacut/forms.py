@@ -2,26 +2,36 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, URLField
 from wtforms.validators import URL, DataRequired, Length, Optional, Regexp
 
-from .constants import SHORT_REGEX
+from .models import SHORT_REGEX
+
+INSERT_LINK = 'Обязательное поле'
+MAX_1 = 1024
+URL_FIELD = 'Здесь должен быть url-адрес'
+ADD_URL = 'Вставьте ссылку'
+SHORT_URL = 'Короткая ссылка'
+MAX_2 = 16
+NUMBER_OF_SYMBOLS = 'Допустимо не более 16 символов'
+ALLOWABLE_SYMBOLS = 'Для короткой ссылки допустимы только цифры 0-9 и буквы "a-Z"'
+ADD = 'Добавить'
 
 
 class URLMapForm(FlaskForm):
     original_link = URLField(
-        'Вставьте ссылку',
+        ADD_URL,
         validators=[
-            DataRequired(message='Обязательное поле'),
-            Length(1, 256),
-            URL(require_tld=False, message='Здесь должен быть url-адрес')
+            DataRequired(message=INSERT_LINK),
+            Length(max=MAX_1),
+            URL(require_tld=False, message=URL_FIELD)
         ]
     )
     custom_id = StringField(
-        'Короткая ссылка',
+        SHORT_URL,
         validators=[
-            Length(1, 16, message='Допустимо не более 16 символов'),
+            Length(max=MAX_2, message=NUMBER_OF_SYMBOLS),
             Optional(),
             Regexp(
                 regex=SHORT_REGEX,
-                message='Для короткой ссылки допустимы только цифры 0-9 и буквы "a-Z"')
+                message=ALLOWABLE_SYMBOLS)
         ]
     )
-    submit = SubmitField('Добавить')
+    submit = SubmitField(ADD)
