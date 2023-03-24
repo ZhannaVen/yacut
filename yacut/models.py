@@ -13,7 +13,7 @@ from .error_handlers import InvalidAPIUsage
 MAX_1 = 1024
 MAX_2 = 16
 MAX_LINK_LENGTH = 16
-AUTO_LINK_LENGTH = 6
+LINK_LENGTH = 6
 EMPTY_URL = '"url" является обязательным полем!'
 CHANGE_SHORT_URL = 'Имя "{}" уже занято.'
 SHORT_REGEX = r'^[A-Za-z0-9]{1,16}$'
@@ -25,7 +25,7 @@ VALID_SHORT = 'Указано недопустимое имя для корот�
 
 def get_unique_short_id():
     symbols = string.ascii_lowercase + string.ascii_uppercase + string.digits
-    short_url = ''.join(random.choice(symbols) for _ in range(AUTO_LINK_LENGTH))
+    short_url = ''.join(random.choice(symbols) for symbol in range(LINK_LENGTH))
     for repeat in range(MAX_2):
         if URLMap.query.filter_by(short=short_url).first():
             return get_unique_short_id()
@@ -59,11 +59,14 @@ class URLMap(db.Model):
 
     @staticmethod
     def adding_into_db(original_url, short_url):
-        db.session.add(URLMap(
+        url = URLMap(
             original=original_url,
             short=short_url,
-        ))
+        )
+        db.session.add(url)
         db.session.commit()
+        return url
+
 
     @staticmethod
     def short_url_api(data):
@@ -79,10 +82,7 @@ class URLMap(db.Model):
                 raise InvalidAPIUsage(VALID_SHORT)
         else:
             data['custom_id'] = get_unique_short_id()
-        new_url = URLMap(original=data['url'], short=data['custom_id'])
-        db.session.add(new_url)
-        db.session.commit()
-        return new_url
+        return URLMap.adding_into_db(data['url'], data['custom_id'])
 
     @staticmethod
     def short_url_view(form):
