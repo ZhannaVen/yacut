@@ -67,7 +67,6 @@ class URLMap(db.Model):
         db.session.commit()
         return url
 
-
     @staticmethod
     def short_url_api(data):
         if 'url' not in data:
