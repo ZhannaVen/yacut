@@ -16,7 +16,14 @@ Peculiarities of the service:
 - SQLAlchemy
 - WTForms
 
-### How to start a project (Unix) 
+### Template description of .env
+ - FLASK_APP=yacut
+ - FLASK_ENV=development
+ - DATABASE_URI=sqlite:///db.sqlite3
+ - SECRET_KEY=Your secret key
+
+### How to start a project (Unix)
+
 - Clone repository:
 ```bash
 git clone git@github.com:ZhannaVen/yacut.git
@@ -30,9 +37,15 @@ source venv/bin/activate
 ```bash
 pip install -r requirements.txt
 ```
-- The parser is launched from the ./src/
+- Create .env according to the template above. Be sure to change the DATABASE_URI and SECRET_KEY values
 ```bash
-python src/main.py --help
+touch .env
+```
+- Run migrations
+```bash
+flask db init
+flask db migrate
+flask db upgrade
 ```
 - To start a project
 ```bash
