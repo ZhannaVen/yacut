@@ -1,7 +1,7 @@
 {% extends "base.html" %} 
-{% block title %}YaCut - укоротитель ссылок{{ opinion.id }}{%endblock %} 
+{% block title %}YaCut - укоротитель ссылок{%endblock %} 
 {% block content %}
-<main>
+  <main>
     <section class="container my-5 px-4">
       <h1 class="text-center"><span style="color:red">Ya</span>Cut</h1>
       <p class="text-center my-4">
@@ -30,6 +30,8 @@
                       {% for error in form.custom_id.errors %}
                         <span style="color:red">{{ error }}</span>
                       {% endfor %}
+                  </p>
+                  <p>    
                     {% with messages = get_flashed_messages() %}
                         {% for message in messages %}
                           {{ message }}

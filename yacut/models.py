@@ -92,7 +92,7 @@ class URLMap(db.Model):
                 flash(SHORT_URL_EXISTS.format(short_url))
             else:
                 URLMap.adding_into_db(original_url, short_url)
-                return render_template('url.html', url=short_url, form=form)
+                return render_template('index.html', url=short_url, form=form)
         short_url = get_unique_short_id()
         URLMap.adding_into_db(original_url, short_url)
-        return render_template('url.html', url=short_url, form=form)
+        return render_template('index.html', url=short_url, form=form)
