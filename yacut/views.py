@@ -1,12 +1,12 @@
-
-
-from flask import flash, redirect, render_template
+from flask import flash, redirect, render_template, url_for
 
 from . import app
+from .exceptions import RepeatError
 from .forms import URLMapForm
 from .models import URLMap
 
 SHORT_URL_EXISTS = 'Имя {} уже занято!'
+ERROR = 'Сервис не смог подобрать подходящее имя. Попробуйте снова.'
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -17,11 +17,18 @@ def index_view():
     original_url = form.original_link.data
     short_url = form.custom_id.data
     try:
-        new_url = URLMap().short_url_api(original_url, short_url)
-    except NameError:
+        new_url = URLMap().short_url(original_url, short_url)
+    except RepeatError:
         flash(SHORT_URL_EXISTS.format(short_url))
         return render_template('index.html', form=form)
-    return render_template('index.html', url=new_url.short, form=form)
+    except ValueError:
+        flash(ERROR)
+        return render_template('index.html', form=form)
+    return render_template(
+        'index.html',
+        url=url_for('redirect_view', short=new_url.short, _external=True),
+        form=form
+    )
 
 
 @app.route('/<string:short>')

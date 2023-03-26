@@ -8,13 +8,7 @@ from settings import (MAX_LONG, MAX_REPEAT, MAX_SHORT, MIN_SHORT, SHORT_REGEX,
 
 from yacut import db
 
-MAX_LINK_LENGTH = 16
-EMPTY_URL = '"url" является обязательным полем!'
-CHANGE_SHORT_URL = 'Имя "{}" уже занято.'
-EMPTY_ID = 'Указанный id не найден'
-SHORT_URL_EXISTS = 'Имя {} уже занято!'
-ERROR = 'Сервис не смог подобрать подходящее имя. Попробуйте снова.'
-VALID_SHORT = 'Указано недопустимое имя для короткой ссылки'
+from .exceptions import RepeatError, ShortUrlError
 
 
 def get_unique_short_id():
@@ -27,7 +21,7 @@ def get_unique_short_id():
             return short_url
         else:
             continue
-    return AttributeError(ERROR)
+    return ValueError
 
 
 class URLMap(db.Model):
@@ -54,14 +48,14 @@ class URLMap(db.Model):
         return url.original
 
     @staticmethod
-    def short_url_api(original_url, short_url=None):
+    def short_url(original_url, short_url=None):
         if short_url == '' or short_url is None:
             short_url = get_unique_short_id()
         else:
+            if not re.match(SHORT_REGEX, short_url) or len(short_url) > 16:
+                raise ShortUrlError
             if URLMap.query.filter_by(short=short_url).first() is not None:
-                raise NameError(short_url)
-            elif not re.match(SHORT_REGEX, short_url) or len(short_url) > 16:
-                raise ValueError
+                raise RepeatError(short_url)
         url = URLMap(
             original=original_url,
             short=short_url,

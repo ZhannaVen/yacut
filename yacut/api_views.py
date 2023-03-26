@@ -4,6 +4,7 @@ from flask import jsonify, request
 
 from . import app
 from .error_handlers import InvalidAPIUsage
+from .exceptions import RepeatError, ShortUrlError
 from .models import URLMap
 
 EMPTY = 'Отсутствует тело запроса'
@@ -11,6 +12,7 @@ EMPTY_URL = '"url" является обязательным полем!'
 CHANGE_SHORT_URL = 'Имя "{}" уже занято.'
 VALID_SHORT = 'Указано недопустимое имя для короткой ссылки'
 EMPTY_ID = 'Указанный id не найден'
+ERROR = 'Сервис не смог подобрать подходящее имя. Попробуйте снова.'
 
 
 @app.route('/api/id/', methods=['POST'])
@@ -23,11 +25,13 @@ def new_short_url():
     original_url = data.get('url')
     short_url = data.get('custom_id')
     try:
-        new_url = URLMap().short_url_api(original_url, short_url)
-    except NameError:
+        new_url = URLMap().short_url(original_url, short_url)
+    except RepeatError:
         raise InvalidAPIUsage(CHANGE_SHORT_URL.format(short_url))
-    except ValueError:
+    except ShortUrlError:
         raise InvalidAPIUsage(VALID_SHORT)
+    except ValueError:
+        raise InvalidAPIUsage(ERROR)
     return jsonify(new_url.to_dict()), HTTPStatus.CREATED
 
 
