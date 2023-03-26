@@ -4,6 +4,7 @@ class ShortUrlError(Exception):
     """
     pass
 
+
 class RepeatError(Exception):
     """В базе данных уже существует данное значение.
     """
