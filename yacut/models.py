@@ -13,7 +13,8 @@ from .exceptions import AlreadyExistsError, ShortUrlError, LongUrlError
 
 NO_URL = 'В базе данных нет записи с параметром: {}.'
 LONG_TOO_LONG = f'Максимальная длина урла: {MAX_LONG} символов.'
-NOT_ALLOWED_SHORT = f'Допустимая длина: {MAX_SHORT}  и символы A-z 0-9.'
+VALID_SHORT = 'Указано недопустимое имя для короткой ссылки'
+CHANGE_SHORT_URL = 'Имя "{}" уже занято.'
 
 
 def get_unique_short_id():
@@ -37,7 +38,7 @@ class URLMap(db.Model):
             url=self.original,
             short_link=url_for('index_view', _external=True) + self.short
         )
-    
+
     @staticmethod
     def get_url_by_short(short_url):
         return URLMap.query.filter_by(short=short_url).first()
@@ -54,16 +55,17 @@ class URLMap(db.Model):
         return url.original
 
     @staticmethod
-    def get_new_record(original_url, short_url=None):
-        if len(original_url) > MAX_LONG:
-            raise LongUrlError(LONG_TOO_LONG)
+    def get_new_record(original_url, short_url=None, from_api=None):
         if short_url == '' or short_url is None:
             short_url = get_unique_short_id()
         else:
-            if len(short_url) > MAX_SHORT or not re.match(SHORT_REGEX, short_url):
-                raise ShortUrlError(NOT_ALLOWED_SHORT)
+            if from_api:
+                if len(original_url) > MAX_LONG:
+                    raise LongUrlError(LONG_TOO_LONG)
+                if len(short_url) > MAX_SHORT or not re.match(SHORT_REGEX, short_url):
+                    raise ShortUrlError(VALID_SHORT)
             if URLMap.get_url_by_short(short_url) is not None:
-                raise AlreadyExistsError(short_url)
+                raise AlreadyExistsError(CHANGE_SHORT_URL.format(short_url))
         record = URLMap(
             original=original_url,
             short=short_url,

@@ -28,7 +28,7 @@ def new_short_url():
     original_url = data.get('url')
     short_url = data.get('custom_id')
     try:
-        new_record = URLMap.get_new_record(original_url, short_url)
+        new_record = URLMap.get_new_record(original_url, short_url, from_api=True)
     except AlreadyExistsError:
         raise InvalidAPIUsage(CHANGE_SHORT_URL.format(short_url))
     except ShortUrlError:
