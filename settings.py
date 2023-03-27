@@ -18,4 +18,4 @@ MAX_REPEAT = 5
 
 SYMBOLS = string.ascii_lowercase + string.ascii_uppercase + string.digits
 
-SHORT_REGEX = r'^[a-zA-Z\d]*$'
+SHORT_REGEX = rf'^[{SYMBOLS}]*$'

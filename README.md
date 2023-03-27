@@ -43,8 +43,6 @@ touch .env
 ```
 - Run migrations
 ```bash
-flask db init
-flask db migrate
 flask db upgrade
 ```
 - To start a project

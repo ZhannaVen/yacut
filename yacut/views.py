@@ -1,11 +1,13 @@
 from flask import flash, redirect, render_template, url_for
 
 from . import app
-from .exceptions import RepeatError
+from .exceptions import AlreadyExistsError, LongUrlError
 from .forms import URLMapForm
 from .models import URLMap
+from settings import MAX_LONG
 
 SHORT_URL_EXISTS = 'Имя {} уже занято!'
+LONG_TOO_LONG = f'Максимальная длина урла: {MAX_LONG} символов.'
 ERROR = 'Сервис не смог подобрать подходящее имя. Попробуйте снова.'
 
 
@@ -17,12 +19,15 @@ def index_view():
     original_url = form.original_link.data
     short_url = form.custom_id.data
     try:
-        new_url = URLMap().short_url(original_url, short_url)
-    except RepeatError:
+        new_url = URLMap().get_new_record(original_url, short_url)
+    except AlreadyExistsError:
         flash(SHORT_URL_EXISTS.format(short_url))
         return render_template('index.html', form=form)
     except ValueError:
         flash(ERROR)
+        return render_template('index.html', form=form)
+    except LongUrlError:
+        flash(LONG_TOO_LONG)
         return render_template('index.html', form=form)
     return render_template(
         'index.html',

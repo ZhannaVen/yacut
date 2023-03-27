@@ -3,24 +3,26 @@ import re
 from datetime import datetime
 
 from flask import url_for
-from settings import (MAX_LONG, MAX_REPEAT, MAX_SHORT, MIN_SHORT, SHORT_REGEX,
+from settings import (MAX_LONG, MAX_SHORT, MIN_SHORT, SHORT_REGEX,
                       SYMBOLS)
 
 from yacut import db
 
-from .exceptions import RepeatError, ShortUrlError
+from .exceptions import AlreadyExistsError, ShortUrlError, LongUrlError
+
+
+NO_URL = 'В базе данных нет записи с параметром: {}.'
+LONG_TOO_LONG = f'Максимальная длина урла: {MAX_LONG} символов.'
+NOT_ALLOWED_SHORT = f'Допустимая длина: {MAX_SHORT}  и символы A-z 0-9.'
 
 
 def get_unique_short_id():
     symbols = SYMBOLS
-    repeat = MAX_REPEAT
-    while repeat != 0:
-        short_url = ''.join(random.choice(symbols) for symbol in range(MIN_SHORT))
-        repeat -= 1
-        if URLMap.query.filter_by(short=short_url).first() is None:
-            return short_url
-        else:
-            continue
+    REPEAT_NUMBER = 5
+    for repeat in range(0, REPEAT_NUMBER):
+        short = ''.join(random.sample(symbols, MIN_SHORT))
+        if URLMap.get_url_by_short(short) is None:
+            return short
     return ValueError
 
 
@@ -35,6 +37,10 @@ class URLMap(db.Model):
             url=self.original,
             short_link=url_for('index_view', _external=True) + self.short
         )
+    
+    @staticmethod
+    def get_url_by_short(short_url):
+        return URLMap.query.filter_by(short=short_url).first()
 
     @staticmethod
     def get_or_404(short_url):
@@ -42,24 +48,26 @@ class URLMap(db.Model):
 
     @staticmethod
     def get_original_url(short_id):
-        url = URLMap.query.filter_by(short=short_id).first()
+        url = URLMap.get_url_by_short(short_id)
         if url is None:
-            raise ValueError
+            raise ValueError(NO_URL.format(short_id))
         return url.original
 
     @staticmethod
-    def short_url(original_url, short_url=None):
+    def get_new_record(original_url, short_url=None):
+        if len(original_url) > MAX_LONG:
+            raise LongUrlError(LONG_TOO_LONG)
         if short_url == '' or short_url is None:
             short_url = get_unique_short_id()
         else:
-            if not re.match(SHORT_REGEX, short_url) or len(short_url) > 16:
-                raise ShortUrlError
-            if URLMap.query.filter_by(short=short_url).first() is not None:
-                raise RepeatError(short_url)
-        url = URLMap(
+            if len(short_url) > MAX_SHORT or not re.match(SHORT_REGEX, short_url):
+                raise ShortUrlError(NOT_ALLOWED_SHORT)
+            if URLMap.get_url_by_short(short_url) is not None:
+                raise AlreadyExistsError(short_url)
+        record = URLMap(
             original=original_url,
             short=short_url,
         )
-        db.session.add(url)
+        db.session.add(record)
         db.session.commit()
-        return url
+        return record

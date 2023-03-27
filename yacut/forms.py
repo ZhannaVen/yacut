@@ -24,7 +24,7 @@ class URLMapForm(FlaskForm):
     custom_id = StringField(
         SHORT_URL,
         validators=[
-            Length(1, 16),
+            Length(max=MAX_SHORT),
             Optional(),
             Regexp(
                 regex=SHORT_REGEX,
