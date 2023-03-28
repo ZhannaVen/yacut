@@ -3,28 +3,27 @@ import re
 from datetime import datetime
 
 from flask import url_for
-from settings import (MAX_LONG, MAX_SHORT, MIN_SHORT, SHORT_REGEX,
-                      SYMBOLS)
+from settings import (MAX_LONG, MAX_SHORT, MIN_SHORT, REPEAT_NUMBER,
+                      SHORT_REGEX, SYMBOLS)
 
 from yacut import db
 
-from .exceptions import AlreadyExistsError, ShortUrlError, LongUrlError
-
+from .exceptions import (AlreadyExistsError, GetShortError, LongUrlError,
+                         ShortLengthError, ShortNameError)
 
 NO_URL = 'В базе данных нет записи с параметром: {}.'
-LONG_TOO_LONG = f'Максимальная длина урла: {MAX_LONG} символов.'
-VALID_SHORT = 'Указано недопустимое имя для короткой ссылки'
-CHANGE_SHORT_URL = 'Имя "{}" уже занято.'
+SYMBOLS_NUMBER_LONG = f'Максимальная длина урла: {MAX_LONG} символов.'
+INVALID_SHORT = 'Указано недопустимое имя для короткой ссылки'
+NAMEL_TAKEN = 'Имя "{}" уже занято.'
+FAILED_ATTEMPT = 'Сервис не смог подобрать имя.'
 
 
 def get_unique_short_id():
-    symbols = SYMBOLS
-    REPEAT_NUMBER = 5
     for repeat in range(0, REPEAT_NUMBER):
-        short = ''.join(random.sample(symbols, MIN_SHORT))
+        short = ''.join(random.sample(SYMBOLS, MIN_SHORT))
         if URLMap.get_url_by_short(short) is None:
             return short
-    return ValueError
+    return GetShortError(FAILED_ATTEMPT)
 
 
 class URLMap(db.Model):
@@ -55,17 +54,22 @@ class URLMap(db.Model):
         return url.original
 
     @staticmethod
-    def get_new_record(original_url, short_url=None, from_api=None):
+    def get_new_record(original_url, short_url=None, check_variables=None):
         if short_url == '' or short_url is None:
-            short_url = get_unique_short_id()
-        else:
-            if from_api:
+            if check_variables:
                 if len(original_url) > MAX_LONG:
-                    raise LongUrlError(LONG_TOO_LONG)
-                if len(short_url) > MAX_SHORT or not re.match(SHORT_REGEX, short_url):
-                    raise ShortUrlError(VALID_SHORT)
+                    raise LongUrlError(SYMBOLS_NUMBER_LONG)
+            short_url = get_unique_short_id()    
+        else:
+            if check_variables:
+                if len(original_url) > MAX_LONG:
+                    raise LongUrlError(SYMBOLS_NUMBER_LONG)
+                if len(short_url) > MAX_SHORT:
+                    raise ShortLengthError(INVALID_SHORT)
+                if not re.match(SHORT_REGEX, short_url):
+                    raise ShortNameError(INVALID_SHORT)
             if URLMap.get_url_by_short(short_url) is not None:
-                raise AlreadyExistsError(CHANGE_SHORT_URL.format(short_url))
+                raise AlreadyExistsError(NAMEL_TAKEN.format(short_url))
         record = URLMap(
             original=original_url,
             short=short_url,

@@ -1,21 +1,21 @@
 from http import HTTPStatus
 
 from flask import jsonify, request
+from settings import MAX_LONG
 
 from . import app
 from .error_handlers import InvalidAPIUsage
-from .exceptions import AlreadyExistsError, ShortUrlError, LongUrlError
+from .exceptions import (AlreadyExistsError, GetShortError, LongUrlError,
+                         ShortLengthError, ShortNameError)
 from .models import URLMap
-from settings import MAX_LONG
 
-
-LONG_TOO_LONG = f'Максимальная длина урла: {MAX_LONG} символов.'
+SYMBOLS_NUMBER_LONG = f'Максимальная длина урла: {MAX_LONG} символов.'
 EMPTY = 'Отсутствует тело запроса'
 EMPTY_URL = '"url" является обязательным полем!'
-CHANGE_SHORT_URL = 'Имя "{}" уже занято.'
-VALID_SHORT = 'Указано недопустимое имя для короткой ссылки'
-EMPTY_ID = 'Указанный id не найден'
-ERROR = 'Сервис не смог подобрать подходящее имя. Попробуйте снова.'
+NAMEL_TAKEN = 'Имя "{}" уже занято.'
+INVALID_SHORT = 'Указано недопустимое имя для короткой ссылки'
+ID_NOT_FOUND = 'Указанный id не найден'
+FAILED_ATTEMPT = 'Сервис не смог подобрать имя.'
 
 
 @app.route('/api/id/', methods=['POST'])
@@ -26,18 +26,23 @@ def new_short_url():
     if 'url' not in data:
         raise InvalidAPIUsage(EMPTY_URL)
     original_url = data.get('url')
-    short_url = data.get('custom_id')
+    short = data.get('custom_id')
     try:
-        new_record = URLMap.get_new_record(original_url, short_url, from_api=True)
+        return jsonify(URLMap.get_new_record(
+            original_url,
+            short,
+            check_variables=True
+        ).to_dict()), HTTPStatus.CREATED
     except AlreadyExistsError:
-        raise InvalidAPIUsage(CHANGE_SHORT_URL.format(short_url))
-    except ShortUrlError:
-        raise InvalidAPIUsage(VALID_SHORT)
-    except ValueError:
-        raise InvalidAPIUsage(ERROR)
+        raise InvalidAPIUsage(NAMEL_TAKEN.format(short))
+    except ShortNameError:
+        raise InvalidAPIUsage(INVALID_SHORT)
+    except ShortLengthError:
+        raise InvalidAPIUsage(INVALID_SHORT)
+    except GetShortError:
+        raise InvalidAPIUsage(FAILED_ATTEMPT)
     except LongUrlError:
-        raise InvalidAPIUsage(LONG_TOO_LONG)
-    return jsonify(new_record.to_dict()), HTTPStatus.CREATED
+        raise InvalidAPIUsage(SYMBOLS_NUMBER_LONG)
 
 
 @app.route('/api/id/<string:short_id>/', methods=['GET'])
@@ -45,5 +50,5 @@ def get_original_url(short_id):
     try:
         url = URLMap().get_original_url(short_id)
     except ValueError:
-        raise InvalidAPIUsage(EMPTY_ID, HTTPStatus.NOT_FOUND)
+        raise InvalidAPIUsage(ID_NOT_FOUND, HTTPStatus.NOT_FOUND)
     return jsonify({'url': url}), HTTPStatus.OK
