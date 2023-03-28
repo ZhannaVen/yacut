@@ -59,7 +59,7 @@ class URLMap(db.Model):
             if check_variables:
                 if len(original_url) > MAX_LONG:
                     raise LongUrlError(SYMBOLS_NUMBER_LONG)
-            short_url = get_unique_short_id()    
+            short_url = get_unique_short_id()
         else:
             if check_variables:
                 if len(original_url) > MAX_LONG:
