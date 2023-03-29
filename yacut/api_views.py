@@ -5,8 +5,7 @@ from settings import MAX_LONG
 
 from . import app
 from .error_handlers import InvalidAPIUsage
-from .exceptions import (AlreadyExistsError, GetShortError, LongUrlError,
-                         ShortLengthError, ShortNameError)
+from .exceptions import (AlreadyExistsError, ValidationError, UniqueShortError)
 from .models import URLMap
 
 SYMBOLS_NUMBER_LONG = f'Максимальная длина урла: {MAX_LONG} символов.'
@@ -35,14 +34,12 @@ def new_short_url():
         ).to_dict()), HTTPStatus.CREATED
     except AlreadyExistsError:
         raise InvalidAPIUsage(NAMEL_TAKEN.format(short))
-    except ShortNameError:
+    except ValidationError:
         raise InvalidAPIUsage(INVALID_SHORT)
-    except ShortLengthError:
-        raise InvalidAPIUsage(INVALID_SHORT)
-    except GetShortError:
+    except UniqueShortError:
         raise InvalidAPIUsage(FAILED_ATTEMPT)
-    except LongUrlError:
-        raise InvalidAPIUsage(SYMBOLS_NUMBER_LONG)
+    except Exception as error:
+        InvalidAPIUsage(error)
 
 
 @app.route('/api/id/<string:short_id>/', methods=['GET'])

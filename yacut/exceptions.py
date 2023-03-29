@@ -1,22 +1,11 @@
-class ShortNameError(Exception):
-    """Ошибка при несоответствии урла регулярному выражению.
+class ValidationError(Exception):
+    """Ошибка при несоответствии урла регулярному
+    выражению или количеству символов.
     """
     pass
 
 
-class ShortLengthError(Exception):
-    """Ошибка при несоответствии имени количеству символов.
-    """
-    pass
-
-
-class LongUrlError(Exception):
-    """Ошибка при несоответствии урла количеству символов.
-    """
-    pass
-
-
-class GetShortError(Exception):
+class UniqueShortError(Exception):
     """Сервис не смог подобрать имя для короткой ссылки.
     """
     pass

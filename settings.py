@@ -14,8 +14,6 @@ MAX_SHORT = 16
 
 MIN_SHORT = 6
 
-MAX_REPEAT = 5
-
 SYMBOLS = string.ascii_lowercase + string.ascii_uppercase + string.digits
 
 SHORT_REGEX = rf'^[{SYMBOLS}]*$'
